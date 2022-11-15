@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\SkillResource;
 use App\Models\Skill;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
 
 class SkillController extends Controller
 {
@@ -14,7 +17,8 @@ class SkillController extends Controller
      */
     public function index()
     {
-        return inertia('Skills/Index');
+        $skills = SkillResource::collection(Skill::all());
+        return inertia('Skills/Index', ['skills' => $skills]);
     }
 
     /**
@@ -36,15 +40,15 @@ class SkillController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name'=>'required',
-            'image'=>'required|image',
+            'name' => 'required',
+            'image' => 'required|image',
         ]);
 
-        if($request->hasFile('image')){
-            $image=$request->file('image')->store('skills');
+        if ($request->hasFile('image')) {
+            $image = $request->file('image')->store('skills', 'public');
             Skill::create([
-                'name'=>$request->name,
-                'image'=>$image,
+                'name' => $request->name,
+                'image' => $image,
             ]);
             return redirect()->route('skills.index');
         }
@@ -70,7 +74,8 @@ class SkillController extends Controller
      */
     public function edit($id)
     {
-        //
+        $skill = Skill::find($id);
+        return inertia('Skills/Edit', ['skill' => $skill]);
     }
 
     /**
@@ -82,7 +87,21 @@ class SkillController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $request->validate([
+            'name' => 'required',
+        ]);
+        $skill = Skill::find($id);
+        if ($request->hasFile('image')) {
+            Storage::delete('public/'.$skill->image);
+            $newimage=$request->file('image')->store('skills','public');
+        }
+
+        $skill->update([
+            'name'=>$request->name,
+            'image'=>$newimage,
+        ]);
+
+        return redirect()->route('skills.index');
     }
 
     /**
@@ -93,6 +112,9 @@ class SkillController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $skill=Skill::find($id);
+        Storage::delete('public/'.$skill->image);
+        $skill->delete();
+        return redirect()->back();
     }
 }
