@@ -44,9 +44,9 @@ import BreezeButton from '@/Components/Button.vue';
 const form = useForm({
     name: '',
     image: null,
-});
+})
 
-const submit = () => {
+function submit() {
     form.post(route('skills.store'));
-};
+}
 </script>

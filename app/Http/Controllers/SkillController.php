@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\SkillRequest;
 use App\Http\Resources\SkillResource;
 use App\Models\Skill;
 use Illuminate\Http\Request;
@@ -37,22 +38,15 @@ class SkillController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(SkillRequest $request)
     {
-        $request->validate([
-            'name' => 'required',
-            'image' => 'required|image',
-        ]);
 
-        if ($request->hasFile('image')) {
-            $image = $request->file('image')->store('skills', 'public');
-            Skill::create([
-                'name' => $request->name,
-                'image' => $image,
-            ]);
-            return redirect()->route('skills.index');
-        }
-        return redirect()->back();
+        $image = $request->file('image')->store('skills', 'public');
+        Skill::create([
+            'name' => $request->name,
+            'image' => $image,
+        ]);
+        return redirect()->route('skills.index')->with(['message'=>'skill create successfully']);
     }
 
     /**
@@ -85,23 +79,17 @@ class SkillController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(SkillRequest $request, $id)
     {
-        $request->validate([
-            'name' => 'required',
-        ]);
         $skill = Skill::find($id);
-        if ($request->hasFile('image')) {
-            Storage::delete('public/'.$skill->image);
-            $newimage=$request->file('image')->store('skills','public');
-        }
-
+        Storage::delete('public/'.$skill->image);
+        $newimage=$request->file('image')->store('skills','public');
         $skill->update([
             'name'=>$request->name,
             'image'=>$newimage,
         ]);
 
-        return redirect()->route('skills.index');
+        return redirect()->route('skills.index')->with(['message'=>'skill update successfully']);
     }
 
     /**
@@ -115,6 +103,6 @@ class SkillController extends Controller
         $skill=Skill::find($id);
         Storage::delete('public/'.$skill->image);
         $skill->delete();
-        return redirect()->back();
+        return redirect()->back()->with(['message'=>'skill delete successfully']);
     }
 }

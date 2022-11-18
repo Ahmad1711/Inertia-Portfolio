@@ -13,13 +13,13 @@
                     <div>
                         <BreezeLabel for="name" value="Name" />
                         <BreezeInput id="name" type="text" class="mt-1 block w-full" v-model="form.name" />
-                        <BreezeInputError class="mt-2" :message="form.errors.name"/>
+                        <BreezeInputError class="mt-2" :message="errors.name"/>
                     </div>
 
                     <div class="mt-4">
                         <BreezeLabel for="image" value="Image" />
                         <BreezeInput id="image" type="file" class="mt-1 block w-full" @input="form.image = $event.target.files[0]" />
-                        <BreezeInputError class="mt-2" :message="form.errors.image"/>
+                        <BreezeInputError class="mt-2" :message="errors.image"/>
                     </div>
                     <div class="mt-4"><img :src="'/storage/'+skill.image" class="w-12 h-12 rounded"></div>
 
@@ -43,15 +43,16 @@ import BreezeInputError from '@/Components/InputError.vue';
 import BreezeButton from '@/Components/Button.vue';
 import {Inertia} from '@inertiajs/inertia';
 const props=defineProps({
-    skill:Object
+    skill:Object,
+    errors:Object,
 })
 const form = useForm(props.skill);
-const submit = () => {
+function submit() {
     // form.put(route('skills.update',form.id));
     Inertia.post(`/skills/${props.skill.id}`, {
     _method: 'put',
     name:form.name,
     image: form.image,
     });
-};
+}
 </script>

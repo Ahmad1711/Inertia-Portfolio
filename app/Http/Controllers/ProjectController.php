@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ProjectRequest;
 use App\Http\Resources\ProjectResource;
 use App\Models\Project;
 use App\Models\Skill;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProjectController extends Controller
 {
@@ -37,25 +39,16 @@ class ProjectController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(ProjectRequest $request)
     {
-        $request->validate([
-            'name'=>'required',
-            'skill_id'=>'required',
-            'image'=>'required|image',
+        $image=$request->file('image')->store('projects','public');
+        Project::create([
+            'name'=>$request->name,
+            'skill_id'=>$request->skill_id,
+            'url'=>$request->url,
+            'image'=>$image,
         ]);
-
-        if($request->hasFile('image')){
-            $image=$request->file('image')->store('projects','public');
-            Project::create([
-                'name'=>$request->name,
-                'skill_id'=>$request->skill_id,
-                'url'=>$request->url,
-                'image'=>$image,
-            ]);
-            return redirect()->route('projects.index');
-        }
-        return redirect()->back();
+        return redirect()->route('projects.index')->with(['message'=>'project create successfully']);
     }
 
     /**
@@ -77,7 +70,9 @@ class ProjectController extends Controller
      */
     public function edit($id)
     {
-        //
+        $project = Project::find($id);
+        $skills = Skill::all();
+        return inertia('Projects/Edit', ['project' => $project, 'skills' => $skills]);
     }
 
     /**
@@ -87,9 +82,20 @@ class ProjectController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(ProjectRequest $request, $id)
     {
-        //
+        $project = Project::find($id);
+
+        Storage::delete('public/' . $project->image);
+        $newimage = $request->file('image')->store('projects', 'public');
+        $project->update([
+            'name' => $request->name,
+            'skill_id' => $request->skill_id,
+            'url' => $request->url,
+            'image' => $newimage,
+        ]);
+
+        return redirect()->route('projects.index')->with(['message'=>'project update successfully']);
     }
 
     /**
@@ -100,6 +106,9 @@ class ProjectController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $project = Project::find($id);
+        Storage::delete('public/' . $project->image);
+        $project->delete();
+        return redirect()->back()->with(['message'=>'project delete successfully']);
     }
 }
