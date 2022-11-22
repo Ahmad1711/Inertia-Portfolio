@@ -12,7 +12,7 @@ const showingNavigationDropdown = ref(false);
 
 <template>
     <div>
-      <div v-if="$page.props.flash.message" class="alert">
+      <div v-if="$page.props.flash.message" class="p-4 mb-4 text-sm text-green-700 bg-green-100 rounded-lg dark:bg-green-200 dark:text-green-800" role="alert">
         {{ $page.props.flash.message }}
       </div>
         <div class="min-h-screen bg-gray-100">
